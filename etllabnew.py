@@ -7,7 +7,11 @@ import datetime
 from selenium import webdriver # type: ignore
 from selenium.webdriver.common.by import By # type: ignore
 from selenium.webdriver.chrome.options import Options # type: ignore
+from selenium.webdriver.common.keys import Keys # type: ignore
+from selenium.webdriver.common.action_chains import ActionChains # type: ignore
 from dotenv import load_dotenv # type: ignore
+from selenium.webdriver.common.actions.wheel_input import ScrollOrigin# type: ignore
+
 from db.config import openConn, closeConn
 
 load_dotenv()
@@ -22,8 +26,12 @@ driver = webdriver.Chrome(options=chrome_options)# Inicializar o driver com as o
 driver.maximize_window()
 url_sistema = os.getenv("URL_SISTEMA")
 url_movimento_diario = os.getenv("URL_MOVIMENTO_DIARIO")
+url_estatistica = os.getenv("URL_ESTATISTICA")
 user = os.getenv("USER")
 senha=os.getenv("SENHA")
+
+
+vendedores = ["Cristina", "Janaina", "SabrinaCosta",  "Samya", "Lyvia"]
 
 def get_connection_and_cursor():
     return openConn()
@@ -42,8 +50,15 @@ def abrirSistema():
     pyautogui.press('enter')
 
     time.sleep(3)
-    driver.get(url_movimento_diario)
+    abrirMovimentoDiario()
 
+def abrirMovimentoDiario():
+    driver.get(url_movimento_diario)
+    time.sleep(1)
+
+def abrirEstatisticas():
+    driver.get(url_estatistica)
+    time.sleep(1)
 
 def definirData():
     data = datetime.date.today()
@@ -66,8 +81,7 @@ def definirData():
 
     print(f"Data início: {dataInicio} - Data fim: {dataFim}")
 
-def pegarValores():
-    vendedores = ["Cristina", "Janaina", "SabrinaCosta",  "Samya", "Lyvia"]
+def pegarValores():    
     dicVendedores = {}
 
     definirData()
@@ -93,20 +107,21 @@ def pegarValores():
 
         try:
             connection, cursor = get_connection_and_cursor()
-            totalPago = totalPago.replace(".", "").replace(",", ".")  # Converter '1.751,00' para '1751.00'
-            totalPago = float(totalPago)  # Converter para float
 
-            dado = {"nome": vendedor, "realizado": totalPago}   
-            dbColumns = ', '.join(dado.keys())
-            dbValues = ', '.join([f"'{value}'" for value in dado.values()])
+            totalPago = totalPago.replace(".", "").replace(",", ".") 
+            totalPago = float(totalPago)
+            pacientesAtendidos = qtdPacientesAtendidos(vendedor)
 
-            # Criar e executar a query de inserção
+            data = {"nome": vendedor, "realizado": totalPago, "pacientes_atendidos": pacientesAtendidos}   
+         
             insert_query = f"""
-                            INSERT INTO vendedores (nome, realizado)
-                            VALUES ('{dado['nome']}', {dado['realizado']})
+                            INSERT INTO vendedores (nome, realizado, qtdVendas)
+                            VALUES ('{data['nome']}', {data['realizado']}, {data['pacientes_atendidos']})
                             ON DUPLICATE KEY UPDATE
-                            realizado = realizado + {dado['realizado']}
+                            realizado = {data['realizado']},
+                            pacientes_atendidos = {data['pacientes_atendidos']}
                             """
+            print(insert_query)
             cursor.execute(insert_query)
             connection.commit()
             closeConn(connection, cursor)
@@ -115,7 +130,48 @@ def pegarValores():
             print('ERROR',e)
        
     return dicVendedores
-            
+   
+def pegarExames():
+    abrirEstatisticas()
+    exames = ["Beta HCG", "Pezinho", "Sexagem Fetal"]
+
+    input = driver.find_element(By.ID, "react-select-11-input")
+    for exame in exames:
+        input.send_keys(exame)
+        input.send_keys(Keys.RETURN)
+
+  
+    pyautogui.click(x=1714, y=449)
+    btn = driver.find_element(By.TAG_NAME, 'button')
+    btn.click()
+
+    time.sleep(2)
+
+    iframe = driver.find_element(By.TAG_NAME, "section")
+    scroll_origin = ScrollOrigin.from_element(iframe)
+    ActionChains(driver)\
+        .scroll_from_origin(scroll_origin, 0, 200)\
+        .perform()
+    
+    td_elements = driver.find_elements(By.TAG_NAME, 'td')
+    valores = [td.text for td in td_elements if td.text.strip()]  # Ignora textos vazios
+   
+    totalExames = valores[len(valores)-2]
+
+    print(totalExames)
+
+
+
+def qtdPacientesAtendidos(vendedor):
+    pyautogui.click(x=401, y=449)
+    pyautogui.write(vendedor)
+    pyautogui.press("enter")
+    pyautogui.click(x=1009, y=380)
+    tbody = driver.find_element(By.ID, "tbody")        
+    rows = tbody.find_elements(By.TAG_NAME, "tr") 
+        
+    return len(rows)
 
 abrirSistema()
-pegarValores()
+# pegarValores()
+pegarExames()
