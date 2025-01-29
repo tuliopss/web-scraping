@@ -38,7 +38,7 @@ def get_connection_and_cursor():
 
 def abrirSistema():
     driver.get(url_sistema)
-    time.sleep(1)
+    time.sleep(2)
 
     pyautogui.PAUSE = 0.3
     pyautogui.click(x=1290, y=600)
@@ -50,15 +50,15 @@ def abrirSistema():
     pyautogui.press('enter')
 
     time.sleep(3)
-    abrirMovimentoDiario()
+    # abrirMovimentoDiario()
 
 def abrirMovimentoDiario():
     driver.get(url_movimento_diario)
-    time.sleep(1)
+    time.sleep(2)
 
 def abrirEstatisticas():
     driver.get(url_estatistica)
-    time.sleep(1)
+    time.sleep(5)
 
 def definirData():
     data = datetime.date.today()
@@ -135,31 +135,46 @@ def pegarExames():
     abrirEstatisticas()
     exames = ["Beta HCG", "Pezinho", "Sexagem Fetal"]
 
-    input = driver.find_element(By.ID, "react-select-11-input")
-    for exame in exames:
-        input.send_keys(exame)
-        input.send_keys(Keys.RETURN)
+    inputExame = driver.find_element(By.ID, "react-select-11-input")
+    # for exame in exames:
+    #     inputExame.send_keys(exame)
+    #     inputExame.send_keys(Keys.RETURN)
 
-  
-    pyautogui.click(x=1714, y=449)
-    btn = driver.find_element(By.TAG_NAME, 'button')
-    btn.click()
 
-    time.sleep(2)
 
-    iframe = driver.find_element(By.TAG_NAME, "section")
-    scroll_origin = ScrollOrigin.from_element(iframe)
-    ActionChains(driver)\
-        .scroll_from_origin(scroll_origin, 0, 200)\
-        .perform()
-    
-    td_elements = driver.find_elements(By.TAG_NAME, 'td')
-    valores = [td.text for td in td_elements if td.text.strip()]  # Ignora textos vazios
-   
-    totalExames = valores[len(valores)-2]
+    inputAtendente = driver.find_element(By.XPATH, '/html/body/div[2]/div/form/statistics-attendants-component/div/div[1]/div[1]/div[2]/div[6]/div/div/div/div[1]/div[2]/input')
+    for vendedor in vendedores:
+        driver.execute_script("arguments[0].click();", inputAtendente)
+     
+    #         inputAtendente.click()
+        inputAtendente.send_keys(vendedor)
+            
+        inputAtendente.send_keys(Keys.RETURN)
+    #     else:
+    #         print('nao')
 
-    print(totalExames)
 
+    #     pyautogui.click(x=1714, y=449)
+    #     btn = driver.find_element(By.TAG_NAME, 'button')
+    #     btn.click()
+
+    #     time.sleep(10)
+
+    #     sectionTable = driver.find_element(By.TAG_NAME, "section")
+        
+    #     scroll_origin = ScrollOrigin.from_element(sectionTable)
+    #     ActionChains(driver)\
+    #         .scroll_from_origin(scroll_origin, 0, 200)\
+    #         .perform()
+        
+    #     td_elements = driver.find_elements(By.TAG_NAME, 'td')
+    #     valores = [td.text for td in td_elements if td.text.strip()]  # Ignora textos vazios
+
+    #     driver.execute_script("window.scrollTo(0, 0);")
+
+        
+    # totalExames = valores[len(valores)-2]
+    # return totalExames
 
 
 def qtdPacientesAtendidos(vendedor):
