@@ -87,8 +87,7 @@ def pegarValores():
             print('ERROR',e)
        
     return dicVendedores
-   
-    
+     
 def get_connection_and_cursor():
     return openConn()
 
@@ -125,14 +124,14 @@ def definirDataAtendentes():
     pyautogui.click(x=370, y=395)
     diaInicio = f"01"
     dataInicio=f"{diaInicio} {mes} {ano}"
-    # dataInicio=f"{diaInicio} {diaInicio} {ano}"
+    # dataInicio=f"{diaInicio} {12} {2024}"
     pyautogui.write(dataInicio)
 
     #Data fim
     pyautogui.click(x=468, y=398)
-    diaFim = f"0{data.day}" if data.day < 10 else str(data.day)
+    diaFim = f"0{data.day -1}" if data.day < 10 else str(data.day)
     dataFim = f"{diaFim} {mes} {ano}"
-    # dataFim = f"{31} {diaInicio} {ano}"
+    # dataFim = f"{31} {12} {2024}"
     print(dataFim)
     pyautogui.write(dataFim)
 
@@ -150,7 +149,7 @@ def definirDataExames():
     diaInicio = f"01"
     inputInicio.click()
     dataInicio=f"{diaInicio}/{mes}/{ano}"
-    # dataInicio=f"{diaInicio}/{diaInicio}/{ano}"
+    # dataInicio=f"{diaInicio}/{12}/{2024}"
    
     inputInicio.clear()
     print(dataInicio)
@@ -159,10 +158,10 @@ def definirDataExames():
     time.sleep(1)
 
     inputDatafim.click()
-    diaFim = f"0{data.day}" if data.day < 10 else str(data.day)
+    diaFim = f"0{data.day-1}" if data.day < 10 else str(data.day) 
 
     dataFim=f"{diaFim}/{mes}/{ano}"
-    # dataFim=f"{31}/{diaInicio}/{ano}"
+    # dataFim=f"{31}/{12}/{2024}"
     print(dataFim)
     inputDatafim.clear()
     inputDatafim.send_keys(dataFim)
@@ -238,5 +237,5 @@ def qtdPacientesAtendidos(vendedor):
     return len(rows)
 
 abrirSistema()
-# pegarValores()
+pegarValores()
 pegarExames()
